@@ -48,19 +48,19 @@ neode.model('Movie').mergeOn({
     // return adulthood
 
     // Merge a 'Director' node based on the name
-    // return neode.merge('Director', {
-    //   name: 'Noel Clarke',
-    //   // Neode will create relationships when either a Node instance,
-    //   // ID property or Object containing match parameters is passed
-    //   directed: [
-    //     adulthood
-    //   ]
-    // })
-    //   .then(() =>
-    //     adulthood)
+    return neode.merge('Director', {
+      name: 'Noel Clarke',
+      // Neode will create relationships when either a Node instance,
+      // ID property or Object containing match parameters is passed
+      // TODO this fails
+      // directed: [
+      //   adulthood
+      // ]
+    })
+      .then(() =>
+        adulthood)
   })
   .then(adulthood => {
-
     // Output some results
     console.log('Created #', adulthood.id(), adulthood.properties()) // eslint-disable-line no-console
   })
