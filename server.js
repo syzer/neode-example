@@ -1,55 +1,55 @@
 /**
  * A basic example using Express to create a simple movie recommendation engine.
  */
-const express = require('express');
-const session = require('express-session');
-const path = require('path');
+const express = require('express')
+const session = require('express-session')
+const path = require('path')
 
 /**
  * Load Neode with the variables stored in `.env` and tell neode to
  * look for models in the ./models directory.
  */
 const neode = require('neode')
-    .fromEnv()
-    .withDirectory(path.join(__dirname, 'models'));
+  .fromEnv()
+  .withDirectory(path.join(__dirname, 'models'))
 
 /**
  * Create a new Express instance
  */
-const app = express();
+const app = express()
 
 /**
  * Tell express to use jade as the view engine and to look for views
  * inside the ./views folder
  */
-app.set('view engine', 'jade');
-app.set('views', path.join(__dirname, '/views'));
+app.set('view engine', 'jade')
+app.set('views', path.join(__dirname, '/views'))
 
 /**
  * SCRF for AJAX requests used in /recommend/:genre
  */
 app.use(function(req, res, next) {
-    res.header("Access-Control-Allow-Origin", "*");
-    res.header("Access-Control-Allow-Headers", "X-Requested-With");
-    next();
-});
+  res.header("Access-Control-Allow-Origin", "*")
+  res.header("Access-Control-Allow-Headers", "X-Requested-With")
+  next()
+})
 
 /**
  * Set up a simple Session
  */
 app.use(session({
-    genid: function() {
-        return require('uuid').v4();
-    },
-    resave: false,
-    saveUninitialized: true,
-    secret: 'neoderocks'
-}));
+  genid: function() {
+    return require('uuid').v4()
+  },
+  resave: false,
+  saveUninitialized: true,
+  secret: 'neoderocks'
+}))
 
 /**
  * Serve anything inside the ./public folder as a static resource
  */
-app.use(express.static('public'));
+app.use(express.static('public'))
 
 /**
  * Helper function to get a random movie to rate based on the name of
@@ -60,38 +60,38 @@ app.use(express.static('public'));
  * @return {Promise}        Resolves to an object with `genre` and `rated` Node instances
  */
 function getNextMovie(genre, rated) {
-    let params = {
-        genre,
-        rated
-    };
+  let params = {
+    genre,
+    rated
+  }
 
-    const ignore_condition = rated.length ? 'AND NOT id(m) IN {rated}' : '';
-    const cypher = `
+  const ignore_condition = rated.length ? 'AND NOT id(m) IN {rated}' : ''
+  const cypher = `
         MATCH (g:Genre)<-[:IN_GENRE]-(m:Movie)
         WHERE g.name = {genre}
         ${ignore_condition}
         RETURN g, m
         ORDER BY RAND() LIMIT 1
-    `;
+    `
 
-    return neode.cypher(cypher, params)
-        .then(res => {
-            return {
-                genre: neode.hydrateFirst(res, 'g'),
-                movie: neode.hydrateFirst(res, 'm')
-            };
-        });
+  return neode.cypher(cypher, params)
+    .then(res => {
+      return {
+        genre: neode.hydrateFirst(res, 'g'),
+        movie: neode.hydrateFirst(res, 'm')
+      }
+    })
 }
 
 /**
  * Display home page with a list of Genres
  */
 app.get('/', (req, res) => {
-    neode.all('Genre')
-        .then(genres => {
-            res.render('index', {title: 'Home', genres});
-        });
-});
+  neode.all('Genre')
+    .then(genres => {
+      res.render('index', {title: 'Home', genres})
+    })
+})
 
 /**
  * Load up the initial recommendation screen with the first movie ready to rate.
@@ -99,42 +99,42 @@ app.get('/', (req, res) => {
  * get a movie that the user hasn't rated before
  */
 app.get('/recommend/:genre', (req, res) => {
-    getNextMovie(req.params.genre, [])
-        .then(({genre, movie}) => {
-            // If there are no records, redirect to recommendation page
-            if ( !genre || !movie ) {
-                return res.redirect('/');
-            }
+  getNextMovie(req.params.genre, [])
+    .then(({genre, movie}) => {
+      // If there are no records, redirect to recommendation page
+      if ( !genre || !movie ) {
+        return res.redirect('/')
+      }
 
-            res.render('vote', {
-                title: genre.get('name') + ' Recommendations',
-                genre,
-                movie
-            });
-        })
-        .catch(e => {
-            res.status(500).send(e.getMessage());
-        });
-});
+      res.render('vote', {
+        title: genre.get('name') + ' Recommendations',
+        genre,
+        movie
+      })
+    })
+    .catch(e => {
+      res.status(500).send(e.getMessage())
+    })
+})
 
 /**
  * Return a new movie to rate in the supplied genre, ignoring the
  * movies that have already been rated
  */
 app.get('/recommend/:genre/next', (req, res) => {
-    const rated = req.query.rated ? req.query.rated.split(',') : [];
+  const rated = req.query.rated ? req.query.rated.split(',') : []
 
-    getNextMovie(req.params.genre, rated)
-        .then(({movie}) => {
-            return movie.toJson();
-        })
-        .then(json => {
-            res.send(json);
-        })
-        .catch(e => {
-            res.status(500).send(e.getMessage());
-        });
-});
+  getNextMovie(req.params.genre, rated)
+    .then(({movie}) => {
+      return movie.toJson()
+    })
+    .then(json => {
+      res.send(json)
+    })
+    .catch(e => {
+      res.status(500).send(e.getMessage())
+    })
+})
 
 /**
  * Provided a map of results in the query string, create a set of rated relationships
@@ -144,7 +144,7 @@ app.get('/recommend/:genre/next', (req, res) => {
  * as a post body.
  */
 app.get('/recommend/:genre/results', (req, res) => {
-    const query = `
+  const query = `
         MATCH (g:Genre) WHERE g.name = {genre}
         MERGE (u:User {user_id: {user_id}})
         WITH g, u
@@ -165,39 +165,39 @@ app.get('/recommend/:genre/results', (req, res) => {
 
         RETURN g, recommendation, count(*) as occurrences
         ORDER BY occurrences DESC LIMIT 1
-    `;
+    `
 
-    const params = {
-        genre: req.params.genre,
-        user_id: req.sessionID,
-        ratings: JSON.parse(req.query.ratings)
-    };
+  const params = {
+    genre: req.params.genre,
+    user_id: req.sessionID,
+    ratings: JSON.parse(req.query.ratings)
+  }
 
-    neode.cypher(query, params)
-        .then(results => {
-            const genre = neode.hydrateFirst(results, 'g');
-            const movie = neode.hydrateFirst(results, 'recommendation');
+  neode.cypher(query, params)
+    .then(results => {
+      const genre = neode.hydrateFirst(results, 'g')
+      const movie = neode.hydrateFirst(results, 'recommendation')
 
-            res.render('recommendation', {
-                title: "We recommend " + movie.get("title"),
-                genre,
-                movie
-            });
-        })
-        .catch(e => {
-            res.status(500).send(e.getMessage());
-        });
-});
+      res.render('recommendation', {
+        title: "We recommend " + movie.get("title"),
+        genre,
+        movie
+      })
+    })
+    .catch(e => {
+      res.status(500).send(e.getMessage())
+    })
+})
 
 /**
  * For examples of how to use Neode to quickly generate a REST API,
  * checkout the route examples in ./routes.api.js
  */
-app.use(require('./routes/api')(neode));
+app.use(require('./routes/api')(neode))
 
 /**
  * Listen for requests on port 3000
  */
 app.listen(3000, function () {
-    console.log('app listening on http://localhost:3000'); // eslint-disable-line no-console
-});
+  console.log('app listening on http://localhost:3000') // eslint-disable-line no-console
+})

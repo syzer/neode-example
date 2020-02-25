@@ -5,11 +5,12 @@ rules:
     - 1
   indent:
     - 2
-    - 4
+    - 2
     - SwitchCase: 1
   semi:
     - error
-    - always
+    - never
+  no-console: off
 env:
   es6: true
   node: true
