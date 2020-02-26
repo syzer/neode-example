@@ -29,22 +29,18 @@ neode.model('Movie').mergeOn({
       actor.mergeOn({ name: 'Noel Clarke' }),
       actor.mergeOn({ name: 'Scarlett Alice Johnson' }),
       actor.mergeOn({ name: 'Adam Deacon' })
-    ])
-      .then(([noel, scarlett, adam]) => {
-
-        // Relate the actors to the movie
-        return Promise.all([
-          noel.relateTo(adulthood, 'acts_in', { name: 'Sam' }),
-          scarlett.relateTo(adulthood, 'acts_in', { name: 'Lexi' }),
-          adam.relateTo(adulthood, 'acts_in', { name: 'Jay' }),
-        ])
-      })
+    ]).then(([noel, scarlett, adam]) =>
+      // Relate the actors to the movie
+      Promise.all([
+        noel.relateTo(adulthood, 'acts_in', { name: 'Sam' }),
+        scarlett.relateTo(adulthood, 'acts_in', { name: 'Lexi' }),
+        adam.relateTo(adulthood, 'acts_in', { name: 'Jay' }),
+      ]))
       .then(() =>
         adulthood)
   })
   .then(adulthood => {
-    console.warn('EEEEEEEEEE5')
-
+    console.warn('EEEEEEEEEEE')
     // return adulthood
 
     // Merge a 'Director' node based on the name
@@ -60,13 +56,11 @@ neode.model('Movie').mergeOn({
       .then(() =>
         adulthood)
   })
-  .then(adulthood => {
+  .then(adulthood =>
     // Output some results
-    console.log('Created #', adulthood.id(), adulthood.properties()) // eslint-disable-line no-console
-  })
-  .catch(e => {
-    console.log('Error :(', e, e.details) // eslint-disable-line no-console
-  })
+    console.log('Created #', adulthood.id(), adulthood.properties())) // eslint-disable-line no-console
+  .catch(e =>
+    console.log('Error :(', e, e.details)) // eslint-disable-line no-console)
   .then(() => {
     // Close all connections to the graph
     neode.close()
